@@ -129,6 +129,47 @@ body {
 
 .add-btn:hover { background: rgba(124,106,247,0.08); }
 
+/* ── Mobile menu toggle button ── */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124,106,247,0.5);
+  transition: transform 0.2s;
+}
+
+.mobile-menu-btn:active { transform: scale(0.92); }
+
+/* ── Mobile back button ── */
+.mobile-back-btn {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 80;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--surface2);
+  color: var(--accent2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.mobile-back-btn:hover { background: rgba(124,106,247,0.2); }
+
 /* ── Main ── */
 .main {
   flex: 1;
@@ -774,12 +815,222 @@ body {
   color: var(--muted);
   margin-bottom: 14px;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   ██  MOBILE RESPONSIVE  ██
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  /* ── Sidebar: 모바일에서는 전체화면 오버레이 ── */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    min-width: unset;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* ── 메뉴 버튼 표시 ── */
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-back-btn {
+    display: none;
+  }
+
+  .mobile-back-btn.visible {
+    display: block;
+  }
+
+  /* ── Main: 모바일 패딩 축소 ── */
+  .main {
+    padding: 20px 16px;
+    padding-top: 60px; /* 뒤로가기 버튼 공간 */
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* ── Detail header ── */
+  .detail-header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .detail-title {
+    font-size: 1.3rem;
+  }
+
+  .detail-meta {
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .header-actions {
+    align-self: flex-end;
+  }
+
+  /* ── Progress ── */
+  .progress-section {
+    padding: 16px 16px;
+  }
+
+  .progress-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .progress-value {
+    font-size: 1.2rem;
+  }
+
+  /* ── Daily Section ── */
+  .daily-section {
+    padding: 16px;
+  }
+
+  .daily-section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .today-btn {
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* ── Streak: 2x2 그리드 ── */
+  .streak-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .streak-card {
+    padding: 10px;
+  }
+
+  .streak-num {
+    font-size: 1.3rem;
+  }
+
+  /* ── Calendar ── */
+  .cal-day {
+    font-size: 0.72rem;
+    border-radius: 6px;
+  }
+
+  .calendar-grid {
+    gap: 3px;
+  }
+
+  /* ── Sessions: 1열 ── */
+  .sessions-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* ── Notes ── */
+  .notes-section {
+    padding: 16px;
+  }
+
+  /* ── Modal: 모바일 전체폭 ── */
+  .modal {
+    width: 95vw;
+    padding: 20px;
+    border-radius: 14px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .emoji-row {
+    gap: 6px;
+  }
+
+  .emoji-opt {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  /* ── Toast: 모바일 위치 ── */
+  .toast {
+    bottom: 90px; /* 메뉴 버튼 위에 표시 */
+    max-width: calc(100vw - 40px);
+    font-size: 0.8rem;
+  }
+
+  /* ── Complete banner ── */
+  .complete-banner {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    height: 50vh;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .empty-state .icon { font-size: 2.5rem; }
+  .empty-state p { font-size: 0.85rem; }
+}
+
+/* 아주 작은 화면 (360px 이하) */
+@media (max-width: 360px) {
+  .main {
+    padding: 16px 12px;
+    padding-top: 56px;
+  }
+
+  .detail-title {
+    font-size: 1.15rem;
+  }
+
+  .streak-num {
+    font-size: 1.1rem;
+  }
+
+  .today-btn {
+    font-size: 0.8rem;
+  }
+}
 </style>
 </head>
 <body>
 
+<!-- Mobile menu button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" title="목록 보기">📚</button>
+
+<!-- Mobile back button -->
+<button class="mobile-back-btn" id="mobileBackBtn">← 목록</button>
+
 <!-- Sidebar -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <h1>📚 학습 트래커</h1>
     <p>나의 학습 기록</p>
@@ -853,6 +1104,31 @@ function save() {
   localStorage.setItem(STORE_KEY, JSON.stringify(data));
 }
 
+// ─── Mobile helpers ──────────────────────────────────────────────────────────
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('mobileMenuBtn').style.display = 'none';
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  if (isMobile()) {
+    document.getElementById('mobileMenuBtn').style.display = 'flex';
+  }
+}
+
+// Mobile menu button
+document.getElementById('mobileMenuBtn').addEventListener('click', openSidebar);
+
+// Mobile back button
+document.getElementById('mobileBackBtn').addEventListener('click', () => {
+  openSidebar();
+});
+
 // ─── Streak helpers ──────────────────────────────────────────────────────────
 function getToday() {
   return new Date().toISOString().split('T')[0];
@@ -862,7 +1138,6 @@ function calcStreaks(dailyLog) {
   const dates = Object.keys(dailyLog).filter(d => dailyLog[d]).sort();
   if (dates.length === 0) return { current: 0, best: 0 };
 
-  // current streak (from today backwards)
   const today = getToday();
   let cur = 0;
   let d = new Date(today);
@@ -876,7 +1151,6 @@ function calcStreaks(dailyLog) {
     }
   }
 
-  // best streak
   let best = 0, run = 1;
   for (let i = 1; i < dates.length; i++) {
     const prev = new Date(dates[i-1]);
@@ -929,7 +1203,14 @@ function renderSidebar() {
       </div>
       <span class="sidebar-item-badge${isComplete ? ' done' : ''}">${isComplete ? '완료 🎉' : Math.round(done/total*100)+'%'}</span>
     `;
-    el.addEventListener('click', () => selectItem(item.id));
+    el.addEventListener('click', () => {
+      selectItem(item.id);
+      // 모바일에서는 사이드바 닫기
+      if (isMobile()) {
+        closeSidebar();
+        document.getElementById('mobileBackBtn').classList.add('visible');
+      }
+    });
     list.appendChild(el);
   });
 }
@@ -937,7 +1218,6 @@ function renderSidebar() {
 // ─── Select / Render Detail ──────────────────────────────────────────────────
 function selectItem(id) {
   currentId = id;
-  // reset calendar view to current month when switching items
   const now = new Date();
   calViewYear = now.getFullYear();
   calViewMonth = now.getMonth();
@@ -964,7 +1244,6 @@ function renderDetail() {
   const thisMonthCount = countThisMonth(item.dailyLog);
   const totalDays = countTotal(item.dailyLog);
 
-  // sessions
   let sessionsHTML = '';
   item.sessions.forEach((s, i) => {
     const isDone = !!s.date;
@@ -1023,7 +1302,6 @@ function renderDetail() {
       </div>
     </div>
 
-    <!-- ── 일간 학습 체크 ── -->
     <div class="daily-section">
       <div class="daily-section-header">
         <div class="daily-section-title">📅 일간 학습 체크</div>
@@ -1086,13 +1364,12 @@ function renderCalendar() {
   label.textContent = `${y}년 ${monthNames[m]}`;
 
   const today = getToday();
-  const firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+  const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m+1, 0).getDate();
 
   const dowLabels = ['일','월','화','수','목','금','토'];
   let html = dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('');
 
-  // empty cells before first day
   for (let i = 0; i < firstDay; i++) {
     html += `<div class="cal-day empty"></div>`;
   }
@@ -1139,7 +1416,6 @@ function toggleToday() {
   item.dailyLog[today] = !wasStudied;
   save();
 
-  // reset calendar to current month when toggling today
   const now = new Date();
   calViewYear = now.getFullYear();
   calViewMonth = now.getMonth();
@@ -1154,7 +1430,7 @@ function toggleDailyLog(dateStr) {
   if (!item) return;
   if (!item.dailyLog) item.dailyLog = {};
   const today = getToday();
-  if (dateStr > today) return; // future
+  if (dateStr > today) return;
   item.dailyLog[dateStr] = !item.dailyLog[dateStr];
   if (!item.dailyLog[dateStr]) delete item.dailyLog[dateStr];
   save();
@@ -1162,8 +1438,8 @@ function toggleDailyLog(dateStr) {
   renderSidebar();
 
   const d = new Date(dateStr);
-  const label = `${d.getMonth()+1}/${d.getDate()}`;
-  toast(item.dailyLog[dateStr] === undefined ? `${label} 공부 기록 취소` : `✅ ${label} 공부 완료 표시!`);
+  const dlabel = `${d.getMonth()+1}/${d.getDate()}`;
+  toast(item.dailyLog[dateStr] === undefined ? `${dlabel} 공부 기록 취소` : `✅ ${dlabel} 공부 완료 표시!`);
 }
 
 // ─── Session Handlers ────────────────────────────────────────────────────────
@@ -1233,6 +1509,8 @@ function deleteItem() {
   else {
     document.getElementById('emptyState').style.display = 'flex';
     document.getElementById('detail').style.display = 'none';
+    // 모바일에서 뒤로가기 버튼 숨기기
+    document.getElementById('mobileBackBtn').classList.remove('visible');
   }
   toast('삭제했어요.');
 }
@@ -1263,6 +1541,8 @@ function openAddModal() {
   document.getElementById('inputStart').value = getToday();
   buildEmojiRow(selectedEmoji);
   document.getElementById('modalOverlay').classList.add('open');
+  // 모바일에서 사이드바 닫기
+  if (isMobile()) closeSidebar();
   setTimeout(() => document.getElementById('inputName').focus(), 50);
 }
 
@@ -1314,6 +1594,10 @@ function saveModal() {
     };
     data.push(item);
     currentId = item.id;
+    // 모바일에서 새 학습 추가 후 뒤로가기 버튼 표시
+    if (isMobile()) {
+      document.getElementById('mobileBackBtn').classList.add('visible');
+    }
     toast('추가했어요!');
   }
 
@@ -1338,6 +1622,21 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ─── Handle resize: PC↔Mobile 전환 시 상태 정리 ─────────────────────────────
+window.addEventListener('resize', () => {
+  if (!isMobile()) {
+    // PC로 전환 시 사이드바 상태 초기화
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('mobileMenuBtn').style.display = '';
+    document.getElementById('mobileBackBtn').classList.remove('visible');
+  } else {
+    // 모바일로 전환 시
+    if (currentId) {
+      document.getElementById('mobileBackBtn').classList.add('visible');
+    }
+  }
+});
+
 // ─── Init ────────────────────────────────────────────────────────────────────
 document.getElementById('addBtn').addEventListener('click', openAddModal);
 document.getElementById('modalCancel').addEventListener('click', closeModal);
@@ -1353,7 +1652,14 @@ document.getElementById('inputName').addEventListener('keydown', e => {
 data.forEach(item => { if (!item.dailyLog) item.dailyLog = {}; });
 
 renderSidebar();
-if (data.length > 0) selectItem(data[0].id);
+
+// 모바일에서 첫 로드 시 empty state에 맞는 안내 변경
+if (isMobile() && data.length > 0) {
+  selectItem(data[0].id);
+  document.getElementById('mobileBackBtn').classList.add('visible');
+} else if (data.length > 0) {
+  selectItem(data[0].id);
+}
 </script>
 </body>
 </html>
