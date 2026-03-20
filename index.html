@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>학습 트래커</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1c1f2e;
+  --surface2: #252840;
+  --accent: #7c6af7;
+  --accent2: #a78bfa;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --teal: #2dd4bf;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --border: rgba(255,255,255,0.07);
+  --radius: 14px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  gap: 0;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 280px;
+  min-width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--accent2);
+}
+
+.sidebar-header p {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+}
+
+.sidebar-item {
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sidebar-item:hover { background: var(--surface2); }
+.sidebar-item.active { background: rgba(124,106,247,0.2); }
+
+.sidebar-item-left { flex: 1; min-width: 0; }
+
+.sidebar-item-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-item-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.sidebar-item-badge {
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(124,106,247,0.25);
+  color: var(--accent2);
+  white-space: nowrap;
+}
+
+.sidebar-item-badge.done {
+  background: rgba(74,222,128,0.2);
+  color: var(--green);
+}
+
+.add-btn {
+  margin: 0 10px 16px;
+  padding: 10px;
+  border: 1px dashed rgba(124,106,247,0.4);
+  border-radius: 10px;
+  background: none;
+  color: var(--accent2);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: calc(100% - 20px);
+}
+
+.add-btn:hover { background: rgba(124,106,247,0.08); }
+
+/* ── Main ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 36px 40px;
+  max-width: 800px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: var(--muted);
+  gap: 12px;
+}
+
+.empty-state .icon { font-size: 3rem; }
+.empty-state p { font-size: 0.9rem; }
+
+/* ── Detail header ── */
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 16px;
+}
+
+.detail-title-wrap { flex: 1; }
+
+.detail-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.detail-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.header-actions { display: flex; gap: 8px; }
+
+.icon-btn {
+  background: var(--surface2);
+  border: none;
+  color: var(--muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.15s, background 0.15s;
+}
+
+.icon-btn:hover { background: rgba(248,113,113,0.15); color: var(--red); }
+
+/* ── Progress bar ── */
+.progress-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.progress-label { font-size: 0.85rem; color: var(--muted); }
+
+.progress-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent2);
+}
+
+.progress-bar-bg {
+  height: 10px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+
+.progress-bar-fill.complete {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+/* ── Daily Study Section ── */
+.daily-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.daily-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.daily-section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.today-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.today-btn.checked {
+  background: rgba(74,222,128,0.15);
+  color: var(--green);
+  border: 1px solid rgba(74,222,128,0.3);
+}
+
+.today-btn.unchecked {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(124,106,247,0.35);
+}
+
+.today-btn.unchecked:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(124,106,247,0.45);
+}
+
+.today-btn.checked:hover {
+  background: rgba(248,113,113,0.15);
+  color: var(--red);
+  border-color: rgba(248,113,113,0.3);
+}
+
+/* ── Streak Stats ── */
+.streak-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.streak-card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.streak-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.streak-num.fire { color: var(--yellow); }
+.streak-num.best { color: var(--accent2); }
+.streak-num.month { color: var(--teal); }
+.streak-num.total { color: var(--green); }
+
+.streak-label {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* ── Calendar ── */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cal-month-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cal-nav-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.cal-nav-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-dow {
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--muted);
+  padding: 4px 0;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  border: 1px solid transparent;
+  color: var(--text);
+  user-select: none;
+}
+
+.cal-day.empty { cursor: default; }
+.cal-day.other-month { color: rgba(255,255,255,0.2); }
+
+.cal-day:not(.empty):not(.other-month):hover {
+  background: rgba(124,106,247,0.15);
+  border-color: rgba(124,106,247,0.3);
+}
+
+.cal-day.studied {
+  background: rgba(74,222,128,0.18);
+  border-color: rgba(74,222,128,0.35);
+  color: var(--green);
+  font-weight: 600;
+}
+
+.cal-day.today-marker {
+  border-color: rgba(124,106,247,0.5);
+}
+
+.cal-day.today-marker:not(.studied) {
+  background: rgba(124,106,247,0.08);
+  color: var(--accent2);
+  font-weight: 600;
+}
+
+.cal-day.future {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Sessions grid ── */
+.sessions-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.session-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+
+.session-card.done {
+  border-color: rgba(74,222,128,0.25);
+}
+
+.session-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.session-num {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.session-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.session-check:hover {
+  border-color: var(--accent2);
+  background: rgba(167,139,250,0.1);
+}
+
+.session-card.done .session-check {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.session-date-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.session-date-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.session-date-input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 0.83rem;
+  padding: 5px 8px;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.session-date-input:not(.has-value) {
+  color: transparent;
+}
+.session-date-input:not(.has-value)::-webkit-datetime-edit { color: transparent; }
+.session-date-input:not(.has-value)::-webkit-inner-spin-button { display: none; }
+.session-date-input:not(.has-value)::-webkit-calendar-picker-indicator { opacity: 0.3; }
+
+.session-date-input:not(.has-value)::after {
+  content: '날짜 선택';
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.session-date-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  color: var(--text);
+}
+.session-date-input:focus::-webkit-datetime-edit { color: var(--text); }
+.session-date-input:focus::-webkit-calendar-picker-indicator { opacity: 0.6; }
+
+.session-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  cursor: pointer;
+}
+
+.session-date-input.has-value {
+  color: var(--text);
+}
+
+.session-memo-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 0.78rem;
+  padding: 5px 8px;
+  width: 100%;
+  resize: none;
+  height: 52px;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.session-memo-input::placeholder { color: var(--muted); }
+.session-memo-input:focus { outline: none; border-color: var(--accent); }
+
+.session-clear-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.session-clear-btn:hover { color: var(--red); }
+
+/* ── Memo section ── */
+.notes-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.notes-section h3 {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.notes-textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.87rem;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+
+.notes-textarea:focus { outline: none; border-color: var(--accent); }
+.notes-textarea::placeholder { color: var(--muted); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 28px 32px;
+  width: 400px;
+  max-width: 90vw;
+  border: 1px solid rgba(255,255,255,0.1);
+  transform: translateY(12px);
+  transition: transform 0.2s;
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  color: var(--text);
+  font-size: 0.92rem;
+  padding: 10px 12px;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus { outline: none; border-color: var(--accent); }
+
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 9px 20px;
+  border-radius: 9px;
+  border: none;
+  font-size: 0.87rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:active { transform: scale(0.96); }
+
+.btn-ghost {
+  background: rgba(255,255,255,0.07);
+  color: var(--muted);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover { opacity: 0.88; }
+.btn-ghost:hover { background: rgba(255,255,255,0.12); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1e2235;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Completion banner ── */
+.complete-banner {
+  background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(74,222,128,0.08));
+  border: 1px solid rgba(74,222,128,0.3);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.complete-banner .icon { font-size: 1.4rem; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+/* color picker for emoji */
+.emoji-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.emoji-opt {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: rgba(255,255,255,0.06);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s;
+}
+
+.emoji-opt.selected { border-color: var(--accent); }
+
+/* section label */
+.section-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>📚 학습 트래커</h1>
+    <p>나의 학습 기록</p>
+  </div>
+  <div class="sidebar-list" id="sidebarList"></div>
+  <button class="add-btn" id="addBtn">+ 새 학습 추가</button>
+</aside>
+
+<!-- Main -->
+<main class="main" id="main">
+  <div class="empty-state" id="emptyState">
+    <div class="icon">📖</div>
+    <p>왼쪽에서 학습을 선택하거나</p>
+    <p>새 학습을 추가해보세요!</p>
+  </div>
+  <div id="detail" style="display:none"></div>
+</main>
+
+<!-- Modal: Add/Edit -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">새 학습 추가</h2>
+    <div class="form-group">
+      <label>제목</label>
+      <input class="form-input" id="inputName" placeholder="예) 영어책, 토익 단어장..." maxlength="50"/>
+    </div>
+    <div class="form-group">
+      <label>아이콘</label>
+      <div class="emoji-row" id="emojiRow"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>목표 회독 수</label>
+        <input class="form-input" id="inputTarget" type="number" min="1" max="100" value="10" placeholder="10"/>
+      </div>
+      <div class="form-group">
+        <label>시작일 (선택)</label>
+        <input class="form-input" id="inputStart" type="date"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">취소</button>
+      <button class="btn btn-primary" id="modalSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────────────────────
+const STORE_KEY = 'hoedok_tracker_v3';
+const EMOJIS = ['📚','📖','📝','📓','📒','🎯','🧠','💡','🔬','🗺️','✏️','🏆','📊','🌍','🔤','💼'];
+
+let data = load();
+let currentId = null;
+let editingId = null;
+let selectedEmoji = EMOJIS[0];
+
+// calViewYear/Month = currently displayed calendar month
+let calViewYear = new Date().getFullYear();
+let calViewMonth = new Date().getMonth(); // 0-indexed
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+
+// ─── Streak helpers ──────────────────────────────────────────────────────────
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function calcStreaks(dailyLog) {
+  const dates = Object.keys(dailyLog).filter(d => dailyLog[d]).sort();
+  if (dates.length === 0) return { current: 0, best: 0 };
+
+  // current streak (from today backwards)
+  const today = getToday();
+  let cur = 0;
+  let d = new Date(today);
+  while (true) {
+    const ds = d.toISOString().split('T')[0];
+    if (dailyLog[ds]) {
+      cur++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  // best streak
+  let best = 0, run = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i-1]);
+    const curr = new Date(dates[i]);
+    const diff = (curr - prev) / 86400000;
+    if (diff === 1) {
+      run++;
+      best = Math.max(best, run);
+    } else {
+      run = 1;
+    }
+  }
+  best = Math.max(best, run, cur);
+
+  return { current: cur, best };
+}
+
+function countThisMonth(dailyLog) {
+  const now = new Date();
+  const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  return Object.keys(dailyLog).filter(d => d.startsWith(prefix) && dailyLog[d]).length;
+}
+
+function countTotal(dailyLog) {
+  return Object.keys(dailyLog).filter(d => dailyLog[d]).length;
+}
+
+// ─── Render Sidebar ──────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('sidebarList');
+  list.innerHTML = '';
+  if (data.length === 0) {
+    list.innerHTML = '<p style="font-size:0.78rem;color:var(--muted);padding:8px 14px;">아직 학습이 없어요</p>';
+    return;
+  }
+  const today = getToday();
+  data.forEach(item => {
+    const done = item.sessions.filter(s => s.date).length;
+    const total = item.target;
+    const isComplete = done >= total;
+    const streak = calcStreaks(item.dailyLog || {}).current;
+    const studiedToday = (item.dailyLog || {})[today];
+
+    const el = document.createElement('div');
+    el.className = 'sidebar-item' + (item.id === currentId ? ' active' : '');
+    el.innerHTML = `
+      <div class="sidebar-item-left">
+        <div class="sidebar-item-name">${item.emoji} ${escHtml(item.name)}</div>
+        <div class="sidebar-item-sub">${done}/${total}회독 &nbsp;·&nbsp; 🔥${streak}일 연속${studiedToday ? ' &nbsp;·&nbsp; ✅오늘' : ''}</div>
+      </div>
+      <span class="sidebar-item-badge${isComplete ? ' done' : ''}">${isComplete ? '완료 🎉' : Math.round(done/total*100)+'%'}</span>
+    `;
+    el.addEventListener('click', () => selectItem(item.id));
+    list.appendChild(el);
+  });
+}
+
+// ─── Select / Render Detail ──────────────────────────────────────────────────
+function selectItem(id) {
+  currentId = id;
+  // reset calendar view to current month when switching items
+  const now = new Date();
+  calViewYear = now.getFullYear();
+  calViewMonth = now.getMonth();
+  renderSidebar();
+  renderDetail();
+}
+
+function renderDetail() {
+  const item = data.find(d => d.id === currentId);
+  document.getElementById('emptyState').style.display = 'none';
+  const detail = document.getElementById('detail');
+  detail.style.display = 'block';
+  if (!item) { detail.innerHTML = ''; return; }
+
+  if (!item.dailyLog) item.dailyLog = {};
+
+  const done = item.sessions.filter(s => s.date).length;
+  const pct  = Math.min(100, Math.round(done / item.target * 100));
+  const isComplete = done >= item.target;
+  const today = getToday();
+  const studiedToday = !!item.dailyLog[today];
+
+  const { current: curStreak, best: bestStreak } = calcStreaks(item.dailyLog);
+  const thisMonthCount = countThisMonth(item.dailyLog);
+  const totalDays = countTotal(item.dailyLog);
+
+  // sessions
+  let sessionsHTML = '';
+  item.sessions.forEach((s, i) => {
+    const isDone = !!s.date;
+    sessionsHTML += `
+      <div class="session-card${isDone ? ' done' : ''}" id="sc-${i}">
+        <div class="session-card-top">
+          <span class="session-num">${i+1}회독</span>
+          <div class="session-check" title="${isDone ? '클릭하면 체크 해제' : '클릭하면 오늘 날짜로 체크'}" onclick="toggleCheck(${i})">${isDone ? '✓' : ''}</div>
+        </div>
+        <div class="session-date-wrap">
+          <span class="session-date-label">날짜</span>
+          <input class="session-date-input${s.date ? ' has-value' : ''}" type="date" ${s.date ? `value="${s.date}"` : ''}
+            data-idx="${i}" onchange="onDateChange(this)"/>
+        </div>
+        <div class="session-date-wrap">
+          <span class="session-date-label">메모</span>
+          <textarea class="session-memo-input" placeholder="간단한 메모..."
+            data-idx="${i}" onchange="onMemoChange(this)">${escHtml(s.memo || '')}</textarea>
+        </div>
+        ${isDone ? `<button class="session-clear-btn" onclick="clearSession(${i})">✕ 기록 지우기</button>` : ''}
+      </div>
+    `;
+  });
+
+  detail.innerHTML = `
+    ${isComplete ? `
+      <div class="complete-banner">
+        <span class="icon">🎉</span>
+        <div>
+          <strong>목표 달성!</strong>
+          <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">${item.target}회독을 모두 완료했어요. 정말 대단해요!</div>
+        </div>
+      </div>` : ''}
+    <div class="detail-header">
+      <div class="detail-title-wrap">
+        <div class="detail-title">${item.emoji} ${escHtml(item.name)}</div>
+        <div class="detail-meta">
+          목표 ${item.target}회독
+          ${item.startDate ? ' &nbsp;·&nbsp; 🗓 시작일 <strong style="color:var(--accent2)">' + item.startDate + '</strong>' : ''}
+          ${done > 0 && item.sessions[done-1]?.date ? ' &nbsp;·&nbsp; 최근 ' + item.sessions[done-1].date : ''}
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" title="수정" onclick="openEditModal()" style="color:var(--muted)">✏️</button>
+        <button class="icon-btn" title="삭제" onclick="deleteItem()">🗑</button>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-top">
+        <span class="progress-label">회독 진행률</span>
+        <span class="progress-value">${done} / ${item.target}회독 (${pct}%)</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill${isComplete ? ' complete' : ''}" style="width:${pct}%"></div>
+      </div>
+    </div>
+
+    <!-- ── 일간 학습 체크 ── -->
+    <div class="daily-section">
+      <div class="daily-section-header">
+        <div class="daily-section-title">📅 일간 학습 체크</div>
+        <button class="today-btn ${studiedToday ? 'checked' : 'unchecked'}" id="todayBtn" onclick="toggleToday()">
+          ${studiedToday ? '✅ 오늘 공부 완료' : '오늘 공부했어요!'}
+        </button>
+      </div>
+
+      <div class="streak-row">
+        <div class="streak-card">
+          <div class="streak-num fire">🔥 ${curStreak}</div>
+          <div class="streak-label">현재 연속<br>학습일</div>
+        </div>
+        <div class="streak-card">
+          <div class="streak-num best">${bestStreak}</div>
+          <div class="streak-label">최장 연속<br>학습일</div>
+        </div>
+        <div class="streak-card">
+          <div class="streak-num month">${thisMonthCount}</div>
+          <div class="streak-label">이번 달<br>학습일</div>
+        </div>
+        <div class="streak-card">
+          <div class="streak-num total">${totalDays}</div>
+          <div class="streak-label">누적<br>학습일</div>
+        </div>
+      </div>
+
+      <div class="calendar-nav">
+        <button class="cal-nav-btn" onclick="calPrev()">◀</button>
+        <span class="cal-month-label" id="calMonthLabel"></span>
+        <button class="cal-nav-btn" onclick="calNext()">▶</button>
+      </div>
+      <div class="calendar-grid" id="calGrid"></div>
+    </div>
+
+    <div class="section-label">회독 기록</div>
+    <div class="sessions-grid">${sessionsHTML}</div>
+
+    <div class="notes-section">
+      <h3>📌 전체 메모</h3>
+      <textarea class="notes-textarea" id="globalNotes" placeholder="책에 대한 전반적인 메모, 느낀 점 등을 자유롭게 적어보세요..."
+        onchange="onNotesChange(this)">${escHtml(item.notes || '')}</textarea>
+    </div>
+  `;
+
+  renderCalendar();
+}
+
+// ─── Calendar render ─────────────────────────────────────────────────────────
+function renderCalendar() {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+
+  const label = document.getElementById('calMonthLabel');
+  const grid  = document.getElementById('calGrid');
+  if (!label || !grid) return;
+
+  const y = calViewYear, m = calViewMonth;
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  label.textContent = `${y}년 ${monthNames[m]}`;
+
+  const today = getToday();
+  const firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  const dowLabels = ['일','월','화','수','목','금','토'];
+  let html = dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  // empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day empty"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = dateStr === today;
+    const isFuture = dateStr > today;
+    const isStudied = !!item.dailyLog[dateStr];
+
+    let cls = 'cal-day';
+    if (isStudied) cls += ' studied';
+    if (isToday)   cls += ' today-marker';
+    if (isFuture)  cls += ' future';
+
+    const title = isStudied ? '공부 완료 (클릭하면 취소)' : isFuture ? '' : '클릭하면 공부 완료로 표시';
+    html += `<div class="${cls}" data-date="${dateStr}" title="${title}" onclick="toggleDailyLog('${dateStr}')">${day}</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function calPrev() {
+  calViewMonth--;
+  if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+  renderCalendar();
+}
+
+function calNext() {
+  const now = new Date();
+  if (calViewYear > now.getFullYear() || (calViewYear === now.getFullYear() && calViewMonth >= now.getMonth())) return;
+  calViewMonth++;
+  if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  renderCalendar();
+}
+
+// ─── Daily log handlers ───────────────────────────────────────────────────────
+function toggleToday() {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  const today = getToday();
+  if (!item.dailyLog) item.dailyLog = {};
+  const wasStudied = !!item.dailyLog[today];
+  item.dailyLog[today] = !wasStudied;
+  save();
+
+  // reset calendar to current month when toggling today
+  const now = new Date();
+  calViewYear = now.getFullYear();
+  calViewMonth = now.getMonth();
+
+  renderDetail();
+  renderSidebar();
+  toast(wasStudied ? '오늘 학습 취소했어요.' : '🔥 오늘 공부 완료! 대단해요!');
+}
+
+function toggleDailyLog(dateStr) {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  if (!item.dailyLog) item.dailyLog = {};
+  const today = getToday();
+  if (dateStr > today) return; // future
+  item.dailyLog[dateStr] = !item.dailyLog[dateStr];
+  if (!item.dailyLog[dateStr]) delete item.dailyLog[dateStr];
+  save();
+  renderDetail();
+  renderSidebar();
+
+  const d = new Date(dateStr);
+  const label = `${d.getMonth()+1}/${d.getDate()}`;
+  toast(item.dailyLog[dateStr] === undefined ? `${label} 공부 기록 취소` : `✅ ${label} 공부 완료 표시!`);
+}
+
+// ─── Session Handlers ────────────────────────────────────────────────────────
+function onDateChange(el) {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  item.sessions[+el.dataset.idx].date = el.value;
+  save();
+  renderDetail();
+  renderSidebar();
+  if (el.value) toast('✅ ' + (+el.dataset.idx+1) + '회독 날짜 저장!');
+}
+
+function onMemoChange(el) {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  item.sessions[+el.dataset.idx].memo = el.value;
+  save();
+}
+
+function onNotesChange(el) {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  item.notes = el.value;
+  save();
+}
+
+function clearSession(idx) {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  item.sessions[idx] = { date: '', memo: '' };
+  save();
+  renderDetail();
+  renderSidebar();
+  toast('기록을 삭제했어요.');
+}
+
+function toggleCheck(idx) {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  if (item.sessions[idx].date) {
+    item.sessions[idx].date = '';
+    save();
+    renderDetail();
+    renderSidebar();
+    toast((idx+1) + '회독 체크 해제');
+  } else {
+    const today = getToday();
+    item.sessions[idx].date = today;
+    save();
+    renderDetail();
+    renderSidebar();
+    toast('✅ ' + (idx+1) + '회독 완료! (' + today + ')');
+  }
+}
+
+// ─── Delete ──────────────────────────────────────────────────────────────────
+function deleteItem() {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  if (!confirm(`"${item.name}"을(를) 삭제할까요? 모든 기록이 사라져요.`)) return;
+  data = data.filter(d => d.id !== currentId);
+  currentId = data.length ? data[0].id : null;
+  save();
+  renderSidebar();
+  if (currentId) renderDetail();
+  else {
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('detail').style.display = 'none';
+  }
+  toast('삭제했어요.');
+}
+
+// ─── Modal ───────────────────────────────────────────────────────────────────
+function buildEmojiRow(selected) {
+  const row = document.getElementById('emojiRow');
+  row.innerHTML = '';
+  EMOJIS.forEach(e => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-opt' + (e === selected ? ' selected' : '');
+    btn.textContent = e;
+    btn.onclick = () => {
+      selectedEmoji = e;
+      document.querySelectorAll('.emoji-opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    row.appendChild(btn);
+  });
+}
+
+function openAddModal() {
+  editingId = null;
+  selectedEmoji = EMOJIS[0];
+  document.getElementById('modalTitle').textContent = '새 학습 추가';
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputTarget').value = '10';
+  document.getElementById('inputStart').value = getToday();
+  buildEmojiRow(selectedEmoji);
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('inputName').focus(), 50);
+}
+
+function openEditModal() {
+  const item = data.find(d => d.id === currentId);
+  if (!item) return;
+  editingId = item.id;
+  selectedEmoji = item.emoji;
+  document.getElementById('modalTitle').textContent = '학습 수정';
+  document.getElementById('inputName').value = item.name;
+  document.getElementById('inputTarget').value = item.target;
+  document.getElementById('inputStart').value = item.startDate || '';
+  buildEmojiRow(selectedEmoji);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function saveModal() {
+  const name   = document.getElementById('inputName').value.trim();
+  const target = parseInt(document.getElementById('inputTarget').value) || 10;
+  const start  = document.getElementById('inputStart').value;
+
+  if (!name) { document.getElementById('inputName').focus(); return; }
+
+  if (editingId) {
+    const item = data.find(d => d.id === editingId);
+    const prevTarget = item.target;
+    item.name = name;
+    item.emoji = selectedEmoji;
+    item.startDate = start;
+    if (target > prevTarget) {
+      for (let i = prevTarget; i < target; i++) item.sessions.push({ date: '', memo: '' });
+    } else if (target < prevTarget) {
+      item.sessions = item.sessions.slice(0, target);
+    }
+    item.target = target;
+    toast('수정했어요!');
+  } else {
+    const item = {
+      id: Date.now().toString(),
+      name, emoji: selectedEmoji, target,
+      startDate: start,
+      notes: '',
+      dailyLog: {},
+      sessions: Array.from({ length: target }, () => ({ date: '', memo: '' }))
+    };
+    data.push(item);
+    currentId = item.id;
+    toast('추가했어요!');
+  }
+
+  save();
+  closeModal();
+  renderSidebar();
+  renderDetail();
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─── Util ────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+document.getElementById('addBtn').addEventListener('click', openAddModal);
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalSave').addEventListener('click', saveModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+document.getElementById('inputName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveModal();
+});
+
+// Migrate old data: ensure dailyLog exists
+data.forEach(item => { if (!item.dailyLog) item.dailyLog = {}; });
+
+renderSidebar();
+if (data.length > 0) selectItem(data[0].id);
+</script>
+</body>
+</html>
